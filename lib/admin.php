@@ -33,6 +33,7 @@ class DiscourseAdmin {
     add_settings_field( 'discourse_sso_secret', 'SSO Secret Key', array( $this, 'sso_secret_input' ), 'discourse', 'discourse_wp_sso' );
 
     add_settings_field( 'discourse_publish_category', 'Published category', array( $this, 'publish_category_input' ), 'discourse', 'discourse_wp_publish' );
+	add_settings_field( 'discourse_publish_category_update', 'Force category update', array( $this, 'publish_category_input_update' ), 'discourse', 'discourse_wp_publish' );
     add_settings_field( 'discourse_publish_format', 'Publish format', array( $this, 'publish_format_textarea' ), 'discourse', 'discourse_wp_publish' );
     add_settings_field( 'discourse_full_post_content', 'Use full post content', array( $this, 'full_post_checkbox' ), 'discourse', 'discourse_wp_publish' );
 
@@ -91,6 +92,10 @@ class DiscourseAdmin {
 
   function publish_category_input() {
     self::category_select( 'publish-category', 'Category post will be published in Discourse (optional)' );
+  }
+  
+  function publish_category_input_update() {
+    self::checkbox_input( 'publish-category-update', 'Force update category' );
   }
 
   function publish_format_textarea() {
@@ -210,12 +215,15 @@ class DiscourseAdmin {
       "api_key" => $options['api-key'] ,
       "api_username" => $options['publish-username']
     ), $url );
-
+	$force_update = $options['publish-category-update'];
+	//$options['publish-category-update'] = '0';
+	//update_option('discourse', $options);
+	
     $remote = get_transient( "discourse_settings_categories_cache" );
 
-    if( empty( $remote ) ){
+    if( empty( $remote ) or $force_update == '1' ){
       $remote = wp_remote_get( $url );
-
+		print_r($remote);
       if( is_wp_error( $remote ) ) {
         self::text_input( $option, $description );
         return;
