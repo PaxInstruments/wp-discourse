@@ -206,56 +206,70 @@ class DiscourseAdmin {
     echo '</select>';
   }
 
-
-  function category_select( $option, $description ) {
-    $options = get_option( 'discourse' );
+  function get_discourse_categories(){
+  	$options = get_option( 'discourse' );
     $url = $options['url'] . '/categories.json';
 
     $url = add_query_arg( array(
       "api_key" => $options['api-key'] ,
       "api_username" => $options['publish-username']
     ), $url );
-	$force_update = $options['publish-category-update'];
-	//$options['publish-category-update'] = '0';
-	//update_option('discourse', $options);
-	
+	$force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
+
     $remote = get_transient( "discourse_settings_categories_cache" );
 
     if( empty( $remote ) or $force_update == '1' ){
       $remote = wp_remote_get( $url );
-		print_r($remote);
+		//print_r($remote);
       if( is_wp_error( $remote ) ) {
-        self::text_input( $option, $description );
-        return;
+        return $remote;
       }
 
       $remote = wp_remote_retrieve_body( $remote );
 
       if( is_wp_error( $remote ) ) {
-        self::text_input( $option, $description );
-        return;
+        return $remote;
       }
 
       $remote = json_decode( $remote, true );
 
       set_transient( "discourse_settings_categories_cache", $remote, HOUR_IN_SECONDS );
     }
-
+	
     $categories = $remote['category_list']['categories'];
-    $selected = isset( $options['publish-category'] ) ? $options['publish-category'] : '';
+    return $categories;
+  }
 
-    echo "<select id='discourse[{$option}]' name='discourse[{$option}]'>";
-    echo '<option></option>';
+  function category_select( $option, $description ) {
+  	$options = get_option( 'discourse' );
 
-    foreach( $categories as $category ){
-      printf( '<option value="%s"%s>%s</option>',
-        $category['id'],
-        selected( $selected, $category['id'], false ),
-        $category['name']
-      );
+    $categories = self::get_discourse_categories();
+	
+	if( is_wp_error( $categories ) ) {
+	    self::text_input( $option, $description );
+	    return;
     }
-
-    echo '</select>';
+	
+    $selected = isset( $options['publish-category'] ) ? $options['publish-category'] : '';
+	$name = "discourse[{$option}]";
+	self::option_input($name, $categories, $selected);
+  }
+  
+  function option_input($name, $group, $selected){
+	echo "<select id='$name' name='$name'>";
+	echo '<option></option>';
+	
+	foreach( $group as $item ){
+		printf( '<option value="%s"%s>%s</option>',
+			$item['id'],
+			selected( $selected, $item['id'], false ),
+			$item['name']
+		);
+		
+		  
+	}
+	
+	echo '</select>';
   }
 
   function text_input( $option, $description ) {
@@ -330,11 +344,21 @@ class DiscourseAdmin {
       } else {
         $value = get_post_meta( $post->ID, 'publish_to_discourse', true );
       }
-
+	 
       echo '<div class="misc-pub-section misc-pub-section-last">
            <span>'
-           . '<input type="hidden" name="showed_publish_option" value="1">'
-           . '<label><input type="checkbox"' . (( $value == "1") ? ' checked="checked" ' : null) . 'value="1" name="publish_to_discourse" /> Publish to Discourse</label>'
+           . '<input type="hidden" name="showed_publish_option" value="1">';
+
+      // get category option for a single post
+      print "<label>";
+      $publish_post_category = get_post_meta( $post->ID, 'publish_post_category', true);
+  	  $default_category = isset( $options['publish-category'] ) ? $options['publish-category'] : '1';
+  	  $selected = isset( $publish_post_category ) ? $publish_post_category : $default_category;
+  	  $name = "publish_post_category";
+  	  self::option_input($name, self::get_discourse_categories(), $selected);
+	    echo ' Discourse Category</label>';
+
+      echo '<label><input type="checkbox"' . (( $value == "1") ? ' checked="checked" ' : null) . 'value="1" name="publish_to_discourse" /> Publish to Discourse</label>'
       .'</span></div>';
     }
   }
