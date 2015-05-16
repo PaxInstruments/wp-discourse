@@ -91,11 +91,11 @@ class DiscourseAdmin {
   }
 
   function publish_category_input() {
-    self::category_select( 'publish-category', 'Category post will be published in Discourse (optional)' );
+    self::category_select( 'publish-category', 'Default category used to published in Discourse (optional)' );
   }
   
   function publish_category_input_update() {
-    self::checkbox_input( 'publish-category-update', 'Force update category' );
+    self::checkbox_input( 'publish-category-update', 'Ignore cache of category list and refresh from Discourse every time this page loads' );
   }
 
   function publish_format_textarea() {
@@ -352,10 +352,10 @@ class DiscourseAdmin {
       // get category option for a single post
       print "<label>";
       $publish_post_category = get_post_meta( $post->ID, 'publish_post_category', true);
-  	  $default_category = isset( $options['publish-category'] ) ? $options['publish-category'] : '1';
-  	  $selected = isset( $publish_post_category ) ? $publish_post_category : $default_category;
-  	  $name = "publish_post_category";
-  	  self::option_input($name, self::get_discourse_categories(), $selected);
+      $categories = self::get_discourse_categories();
+  	  $default_category = isset( $options['publish-category'] ) ? $options['publish-category'] : '';
+  	  $selected = (! empty( $publish_post_category ) ) ? $publish_post_category : $default_category;
+  	  self::option_input('publish_post_category', $categories, $selected);
 	    echo ' Discourse Category</label>';
 
       echo '<label><input type="checkbox"' . (( $value == "1") ? ' checked="checked" ' : null) . 'value="1" name="publish_to_discourse" /> Publish to Discourse</label>'
