@@ -351,7 +351,7 @@ function publish_to_discourse() {
 
     $categories = self::get_discourse_categories('0');
     if(is_wp_error($categories)){
-      print "<span>Unable to retreive discoures categories at this time. Please save draft to refresh the page.</span>";
+      echo '<span>Unable to retrieve discourse categories at this time. Please save draft to refresh the page.</span>';
     } 
     else {
       echo '<div class="misc-pub-section misc-pub-section-last">
