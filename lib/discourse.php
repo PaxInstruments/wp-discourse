@@ -444,8 +444,7 @@ class Discourse {
     if( ! $username || strlen( $username ) < 2 ) {
       $username = $options['publish-username'];
     }
-
-    //$category = $options['publish-category']; # old category get
+    
     // Get publish category of a post
     $publish_post_category = get_post_meta( $post->ID, 'publish_post_category', true );
     $publish_post_category =  $post->publish_post_category;
