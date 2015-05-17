@@ -95,7 +95,7 @@ class DiscourseAdmin {
   }
   
   function publish_category_input_update() {
-    self::checkbox_input( 'publish-category-update', 'Ignore cache of category list and refresh from Discourse every time this page loads' );
+    self::checkbox_input( 'publish-category-update', 'Update the discourse publish category list, normaly set for an hour (normaly set to refresh every hour)' );
   }
 
   function publish_format_textarea() {
@@ -206,7 +206,7 @@ class DiscourseAdmin {
     echo '</select>';
   }
 
-  function get_discourse_categories(){
+  function get_discourse_categories($force_update='0'){
   	$options = get_option( 'discourse' );
     $url = $options['url'] . '/categories.json';
 
@@ -217,11 +217,11 @@ class DiscourseAdmin {
     $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
 
     $remote = get_transient( "discourse_settings_categories_cache" );
-
-    if( empty( $remote ) or $force_update == '1' ){
+    $cache_is_empty = empty( $remote );
+    if( $cache_is_empty or $force_update == '1' ){
       $remote = wp_remote_get( $url );
-		//print_r($remote);
-      if( is_wp_error( $remote ) ) {
+
+      if( is_wp_error( $remote ) and ! empty( $cache_is_empty ) ) {
         return $remote;
       }
 
@@ -243,7 +243,8 @@ class DiscourseAdmin {
   function category_select( $option, $description ) {
   	$options = get_option( 'discourse' );
 
-    $categories = self::get_discourse_categories();
+    $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
+    $categories = self::get_discourse_categories($force_update);
 	
 	if( is_wp_error( $categories ) ) {
 	    self::text_input( $option, $description );
@@ -345,10 +346,9 @@ class DiscourseAdmin {
         $value = get_post_meta( $post->ID, 'publish_to_discourse', true );
       }
 	     
-      $categories = self::get_discourse_categories();
+      $categories = self::get_discourse_categories('0');
       if(is_wp_error($categories)){
-        print "<span>Unable to retreive discoures categories at this time. Please save draft to refresh the page.".
-          print_r($categories, true)."</span>";
+        print "<span>Unable to retreive discoures categories at this time. Please save draft to refresh the page.</span>";
       } 
       else {
       echo '<div class="misc-pub-section misc-pub-section-last">
