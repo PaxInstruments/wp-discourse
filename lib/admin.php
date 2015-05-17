@@ -217,12 +217,15 @@ class DiscourseAdmin {
     $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
 
     $remote = get_transient( "discourse_settings_categories_cache" );
-    $cache_is_empty = empty( $remote );
-    if( $cache_is_empty or $force_update == '1' ){
+    $cache = $remote; // save the cashe if remote get fails, this still be used
+    if( empty($remote) or $force_update == '1' ){
       $remote = wp_remote_get( $url );
 
-      if( is_wp_error( $remote ) and ! empty( $cache_is_empty ) ) {
+      if( is_wp_error( $remote ) and ! empty( $cache ) ) {
         return $remote;
+      }
+      else {
+        $remote = $cache;
       }
 
       $remote = wp_remote_retrieve_body( $remote );
