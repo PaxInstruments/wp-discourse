@@ -214,7 +214,7 @@ class DiscourseAdmin {
       "api_key" => $options['api-key'] ,
       "api_username" => $options['publish-username']
     ), $url );
-	$force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
+    $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
 
     $remote = get_transient( "discourse_settings_categories_cache" );
 
@@ -235,7 +235,7 @@ class DiscourseAdmin {
 
       set_transient( "discourse_settings_categories_cache", $remote, HOUR_IN_SECONDS );
     }
-	
+
     $categories = $remote['category_list']['categories'];
     return $categories;
   }
@@ -344,7 +344,13 @@ class DiscourseAdmin {
       } else {
         $value = get_post_meta( $post->ID, 'publish_to_discourse', true );
       }
-	 
+	     
+      $categories = self::get_discourse_categories();
+      if(is_wp_error($categories)){
+        print "<span>Unable to retreive discoures categories at this time. Please save draft to refresh the page.".
+          print_r($categories, true)."</span>";
+      } 
+      else {
       echo '<div class="misc-pub-section misc-pub-section-last">
            <span>'
            . '<input type="hidden" name="showed_publish_option" value="1">';
@@ -352,7 +358,6 @@ class DiscourseAdmin {
       // get category option for a single post
       print "<label>";
       $publish_post_category = get_post_meta( $post->ID, 'publish_post_category', true);
-      $categories = self::get_discourse_categories();
   	  $default_category = isset( $options['publish-category'] ) ? $options['publish-category'] : '';
   	  $selected = (! empty( $publish_post_category ) ) ? $publish_post_category : $default_category;
   	  self::option_input('publish_post_category', $categories, $selected);
@@ -360,6 +365,7 @@ class DiscourseAdmin {
 
       echo '<label><input type="checkbox"' . (( $value == "1") ? ' checked="checked" ' : null) . 'value="1" name="publish_to_discourse" /> Publish to Discourse</label>'
       .'</span></div>';
+      }
     }
   }
 }

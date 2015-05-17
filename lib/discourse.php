@@ -324,9 +324,8 @@ class Discourse {
       // widget it updates the field as it should.
 
       // This could be improved, need to be validated
-
       if(isset($_POST['publish_post_category'])){
-        //bugpax('');
+        #delete_post_meta( $post->ID, 'publish_post_category');
         add_post_meta( $post->ID, 'publish_post_category', $_POST['publish_post_category'], true );
       }
 
@@ -391,13 +390,14 @@ class Discourse {
       delete_post_meta( $_POST['ID'], 'publish_to_discourse' );
     }
 
-
     if ( isset( $_POST['publish_post_category'] ) ){
+      delete_post_meta($_POST['ID'], 'publish_post_category');
       add_post_meta( $_POST['ID'], 'publish_post_category',  $_POST['publish_post_category'], true );
     }
 
+
     add_post_meta( $_POST['ID'], 'publish_to_discourse', self::publish_active() ? '1' : '0', true );
-    #exit;
+ 
     return $postid;
   }
 
@@ -476,7 +476,6 @@ class Discourse {
 
     if( ! $discourse_id > 0 ) {
       $url =  $options['url'] .'/posts';
-      
       // use key 'http' even if you send the request to https://...
       $soptions = array(
         'http' => array(
