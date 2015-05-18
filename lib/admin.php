@@ -217,15 +217,15 @@ class DiscourseAdmin {
     $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
 
     $remote = get_transient( "discourse_settings_categories_cache" );
-    $cache = $remote; // save the cashe if remote get fails, this still be used
+    $cache = $remote;
     if( empty($remote) or $force_update == '1' ){
       $remote = wp_remote_get( $url );
 
       if( is_wp_error( $remote ) and ! empty( $cache ) ) {
-        return $remote;
-      }
-      else {
         $remote = $cache;
+      }
+      elseif(is_wp_error( $remote )) {
+        return $remote;
       }
 
       $remote = wp_remote_retrieve_body( $remote );
@@ -262,7 +262,6 @@ class DiscourseAdmin {
  function option_input($name, $group, $selected){
    echo "<select id='$name' name='$name'>";
    echo '<option></option>';
-
    foreach( $group as $item ){
     printf( '<option value="%s"%s>%s</option>',
      $item['id'],
