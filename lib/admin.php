@@ -93,7 +93,7 @@ class DiscourseAdmin {
   function publish_category_input() {
     self::category_select( 'publish-category', 'Default category used to published in Discourse (optional)' );
   }
-  
+
   function publish_category_input_update() {
     self::checkbox_input( 'publish-category-update', 'Update the discourse publish category list, normaly set for an hour (normaly set to refresh every hour)' );
   }
@@ -207,13 +207,13 @@ class DiscourseAdmin {
   }
 
   function get_discourse_categories($force_update='0'){
-  	$options = get_option( 'discourse' );
+    $options = get_option( 'discourse' );
     $url = $options['url'] . '/categories.json';
 
     $url = add_query_arg( array(
       "api_key" => $options['api-key'] ,
       "api_username" => $options['publish-username']
-      ), $url );
+    ), $url );
     $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
 
     $remote = get_transient( "discourse_settings_categories_cache" );
@@ -244,7 +244,7 @@ class DiscourseAdmin {
   }
 
   function category_select( $option, $description ) {
-  	$options = get_option( 'discourse' );
+    $options = get_option( 'discourse' );
 
     $force_update = isset($options['publish-category-update']) ? $options['publish-category-update'] : '0';
     $categories = self::get_discourse_categories($force_update);
@@ -351,13 +351,13 @@ function publish_to_discourse() {
     $categories = self::get_discourse_categories('0');
     if(is_wp_error($categories)){
       echo '<span>Unable to retrieve discourse categories at this time. Please save draft to refresh the page.</span>';
-    } 
+    }
     else {
       echo '<div class="misc-pub-section misc-pub-section-last">
       <span>'
        . '<input type="hidden" name="showed_publish_option" value="1">';
 
-      
+
        print "<label>";
        $publish_post_category = get_post_meta( $post->ID, 'publish_post_category', true);
        $default_category = isset( $options['publish-category'] ) ? $options['publish-category'] : '';
